@@ -40,8 +40,9 @@ public:
 	virtual std::map<std::string, double> nonZeroBalancesInBTC() = 0;
 
 	virtual bool execute(const std::vector<Order>& orders, unsigned timeout) = 0;
-	virtual unsigned createOrder(const Order& order) = 0;
-	virtual void deleteOrder(unsigned id, const std::string& coin) = 0;
-	virtual bool checkOrder(unsigned id, const std::string& coin) = 0;
+	virtual long long createOrder(const Order& order) = 0;
+        virtual void deleteOrder(long long id) = 0;
+	virtual bool checkOrder(long long id, const std::string& coin) = 0;
+        virtual void cancelCurrentOrders() = 0;
 };
 

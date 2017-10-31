@@ -18,9 +18,13 @@ public:
 	virtual std::map<std::string, double> nonZeroBalancesInBTC();
 
 	virtual bool execute(const std::vector<Order>& orders, unsigned timeout);
-	virtual unsigned createOrder(const Order& order);
-	virtual void deleteOrder(unsigned id, const std::string& coin);
-	virtual bool checkOrder(unsigned id, const std::string& coin);
+	virtual long long createOrder(const Order& order);
+    virtual void deleteOrder(long long id);
+	virtual bool checkOrder(long long id, const std::string& coin);
+    virtual void cancelCurrentOrders();
+
+    std::vector<long long> getCurrentOrders();
+    std::vector<long long> getCurrentOrders(const std::string& coin);
 
 	void set_log(const std::string& logfile) {
 		m_log = logfile;

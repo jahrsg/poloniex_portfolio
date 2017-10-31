@@ -7,6 +7,7 @@
 #include <chrono>
 #include "PoloniexTradeApi.h"
 #include "Portfolio.h"
+#include "Log.h"
 
 namespace po = boost::program_options;
 using namespace std;
@@ -15,6 +16,7 @@ int main(int argc, char* argv[])
 {
 	try
 	{
+		Log::init();
 		po::options_description desc("Available options");
 		desc.add_options()
 			("help,h", "show options list")
@@ -45,43 +47,38 @@ int main(int argc, char* argv[])
 		double threshold = vm["threshold"].as<double>();
 		unsigned timeout = vm["timeout"].as<unsigned>();
 
-		bool completed = false;
-		while (!completed)
-		{
-			PoloniexTradeApi trade(key, secret);
-			map<string, double> bs = trade.nonZeroBalances();
-			map<string, double> btcbs = trade.nonZeroBalancesInBTC();
-			double total = 0.0;
-			for (auto b : btcbs)
-			{
-				cout << b.first << ": " << bs[b.first] << " (" << b.second << "BTC)" << std::endl;
-				total += b.second;
-			}
-			cout << "Total: " << total << "BTC" << std::endl;
-			if (vm.count("balancelog"))
-			{
-				string fname = vm["balancelog"].as<string>();
-				ofstream fout(fname, ofstream::app);
-				if (!fout.is_open())
-					throw runtime_error("Failed to open file " + fname);
-				time_t ttp = chrono::system_clock::to_time_t(chrono::system_clock::now());
-				fout << ttp << "," << total << endl;
-			}
-			Portfolio p;
-			for (unsigned i = 0; i < coins.size(); ++i)
-				p.addCoin(coins[i], parts[i]);
+        PoloniexTradeApi trade(key, secret);
+        trade.cancelCurrentOrders();
+        map<string, double> bs = trade.nonZeroBalances();
+        map<string, double> btcbs = trade.nonZeroBalancesInBTC();
+        double total = 0.0;
+        for (auto b : btcbs)
+        {
+            cout << b.first << ": " << bs[b.first] << " (" << b.second << "BTC)" << std::endl;
+            total += b.second;
+        }
+        cout << "Total: " << total << "BTC" << std::endl;
+        if (vm.count("balancelog"))
+        {
+            string fname = vm["balancelog"].as<string>();
+            ofstream fout(fname, ofstream::app);
+            if (!fout.is_open())
+                throw runtime_error("Failed to open file " + fname);
+            time_t ttp = chrono::system_clock::to_time_t(chrono::system_clock::now());
+            fout << ttp << "," << total << endl;
+        }
+        Portfolio p;
+        for (unsigned i = 0; i < coins.size(); ++i)
+            p.addCoin(coins[i], parts[i]);
 
-			vector<TradeApi::Order> orders = p.checkCurrentState(trade, threshold);
-			if (!orders.size())
-				return 0;
+        vector<TradeApi::Order> orders = p.checkCurrentState(trade, threshold);
+        if (!orders.size())
+            return 0;
 
-			cout << "Execute " << orders.size() << " orders..." << endl;
-			if (vm.count("orderlog"))
-				trade.set_log(vm["orderlog"].as<string>());
-			completed = trade.execute(orders, timeout);
-			if (!p.completed())
-				completed = false;
-		}
+        cout << "Execute " << orders.size() << " orders..." << endl;
+        if (vm.count("orderlog"))
+            trade.set_log(vm["orderlog"].as<string>());
+        trade.execute(orders, timeout);
 	}
 	catch (const exception& e)
 	{

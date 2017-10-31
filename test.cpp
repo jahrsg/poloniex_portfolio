@@ -1,5 +1,6 @@
 #include "Portfolio.h"
 #include "TradeApi.h"
+#define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE PortfolioTest
 #include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
@@ -69,19 +70,25 @@ public:
 		return true;
 	}
 
-	virtual unsigned createOrder(const Order& order)
+	virtual long long createOrder(const Order& order)
 	{
 		return 0;
 	}
 
-	virtual void deleteOrder(unsigned id, const string& coin)
+    virtual void deleteOrder(long long id)
 	{
 	}
 
-	virtual bool checkOrder(unsigned id, const string& coin)
+	virtual bool checkOrder(long long id, const string& coin)
 	{
 		return false;
 	}
+
+    virtual void cancelCurrentOrders()
+    {
+
+    }
+
 private:
 	map<string, CoinInfo> m_tickers;
 	map<string, double> m_balances;
@@ -251,3 +258,5 @@ BOOST_FIXTURE_TEST_CASE(completed_cases, TradeFixture3)
 	BOOST_CHECK(o[0].coin == "BBR");
 	BOOST_CHECK(o[0].action == TradeApi::SELL);
 }
+
+
