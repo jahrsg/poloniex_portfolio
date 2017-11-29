@@ -458,9 +458,9 @@ void PoloniexTradeApi::readBalances()
 	}
 	for (ptree::iterator it = pt.begin(); it != pt.end(); ++it)
 	{
-/*		if (it->first == "ARDR")
-			continue;*/
-		m_balances[it->first] = boost::lexical_cast<double>(it->second.data());
+        double balance = boost::lexical_cast<double>(it->second.data());
+        if(balance > 0.0001)
+            m_balances[it->first] = balance;
 	}
 }
 
